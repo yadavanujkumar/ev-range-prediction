@@ -47,7 +47,7 @@ The goal is to accurately predict the electric driving range of an EV based on i
   - Base MSRP
   - Electric Vehicle Type (BEV or PHEV)
   - Geographic features (County, Utility, Census Tract)
-  -link : https://share.google/fq0rlLU9ddiFiY2l9
+  - link : https://share.google/fq0rlLU9ddiFiY2l9
 ---
 
 ## Usage
