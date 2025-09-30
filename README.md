@@ -1,111 +1,129 @@
-# EV Range Prediction Notebook
+# Electric Vehicle Range Prediction – Washington State
 
-This project is a Jupyter notebook that predicts the electric driving range (in miles) of electric vehicles (EVs) using machine learning. The dataset is based on Washington State registered EVs and includes features like make, model year, type (BEV/PHEV), MSRP, location, and more.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Dataset](#dataset)
-- [Usage](#usage)
-- [Results & Visualizations](#results--visualizations)
-- [Requirements](#requirements)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Overview
-
-The goal is to accurately predict the electric driving range of an EV based on its attributes and location. The notebook walks through data cleaning, preprocessing, model training, and evaluation with visualizations to assess model performance.
-
----
-
-## Features
-
-- **Data Cleaning:** Handles missing values, irrelevant columns, and feature engineering (e.g., vehicle age).
-- **Encoding:** Standardizes numeric features and one-hot encodes categorical variables.
-- **Modeling:** Compares multiple machine learning models:
-  - Decision Tree Regressor
-  - Random Forest Regressor
-  - Neural Network (MLPRegressor)
-- **Evaluation:** Uses MAE and R² metrics, provides scatter plots and error analysis.
-- **Visualizations:** Actual vs. predicted range, error histograms, and boxplots by EV type.
-
----
+This project aims to develop a robust predictive model for estimating the electric driving range of newly registered Electric Vehicles (EVs) in Washington State, leveraging detailed registration data provided by the Washington State Department of Licensing.
 
 ## Dataset
 
-- **Source:** Washington State EV registration data.
-- **Sample Features:**
-  - Model Year
-  - Make & Model
-  - Electric Range (target)
-  - Base MSRP
-  - Electric Vehicle Type (BEV or PHEV)
-  - Geographic features (County, Utility, Census Tract)
-  - link : https://share.google/fq0rlLU9ddiFiY2l9
----
+The dataset contains comprehensive records of all registered EVs in Washington, including the following features:
 
-## Usage
+- **County**
+- **City**
+- **Postal Code**
+- **Model Year**
+- **Make**
+- **Model**
+- **Electric Vehicle Type** (BEV/PHEV)
+- **Clean Alternative Fuel Vehicle (CAFV) Eligibility**
+- **Electric Range** (target variable)
+- **Base MSRP**
+- **Legislative District**
+- **Electric Utility**
+- **2020 Census Tract**
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yadavanujkumar/ev-range-prediction.git
-   cd ev-range-prediction
-   ```
+> **Source:** Washington State Department of Licensing, [Electric Vehicle Population Data](https://data.wa.gov/)
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Objective
 
-3. **Run the notebook:**
-   - Open `ev.ipynb` in Jupyter Notebook or JupyterLab.
-   - Run all cells to reproduce the analysis.
+**Predict the electric driving range of a newly registered EV** using key attributes:
+- Make
+- Model Year
+- Type (BEV or PHEV)
+- Base MSRP
+- Geographic features (County, Utility Provider, Census Tract)
 
-4. **(Optional) Use your own data:**
-   - Replace the dataset CSV with your own, ensuring the column names match.
+## Approach
 
----
+The notebook follows a standard machine learning pipeline:
 
-## Results & Visualizations
+1. **Data Exploration**
+    - Inspection of columns, value distributions, and data consistency.
+    - Visual and statistical summaries.
 
-- **High Model Accuracy:** Random Forest achieves very low mean absolute error (MAE < 1 mile) and high R² (>0.99).
-- **Visual Analysis:** Most predictions fall close to actual values, and errors are well-distributed and unbiased.
+2. **Data Preprocessing**
+    - Dropping unnecessary identifiers (VIN, DOL Vehicle ID, Vehicle Location).
+    - Handling missing values for both numeric and categorical columns.
+    - Feature engineering (e.g., calculating vehicle age from model year).
 
-Sample visualizations produced:
-- Scatter plot: Actual vs. Predicted Range
-- Histogram: Distribution of prediction errors
-- Boxplot: Error grouped by EV type (BEV/PHEV)
+3. **Feature Engineering & Encoding**
+    - OneHotEncoding for categorical variables.
+    - Standardization for numeric features.
+    - Use of `ColumnTransformer` and `Pipeline` for streamlined preprocessing and modeling.
 
----
+4. **Model Training**
+    - Models used:
+        - Decision Tree Regressor
+        - Random Forest Regressor
+        - Neural Network (MLPRegressor)
+    - Models trained and evaluated using `train_test_split`.
 
-## Requirements
+5. **Evaluation**
+    - Mean Absolute Error (MAE)
+    - R² Score
+    - Visual comparison of actual vs. predicted electric range.
+    - Residual analysis.
 
-- Python 3.8+
-- pandas
-- numpy
-- matplotlib
-- seaborn
-- scikit-learn
-- jupyter
+6. **Visualization**
+    - Scatter plots of predictions vs. actuals, colored by EV type.
+    - Residual plots to detect bias or heteroskedasticity.
 
-Install dependencies with:
-```bash
-pip install -r requirements.txt
-```
+## Results
 
+| Model            | MAE (↓) | R² (↑)   |
+|------------------|---------|----------|
+| Decision Tree    | ~0.47   | ~0.9972  |
+| Random Forest    | ~0.45   | ~0.9978  |
+| Neural Network   | ~0.84   | ~0.9978  |
 
-## Contributing
+- **Random Forest exhibits the best predictive performance** in terms of both error and explained variance.
 
-Contributions welcome! Please open an issue or submit a pull request.
+## How to Run
 
----
+1. **Requirements:**
+    - Python 3.x
+    - pandas, numpy
+    - scikit-learn
+    - matplotlib, seaborn
 
-## License
+2. **Steps:**
+    - Place the dataset CSV (`Electric_Vehicle_Population_Data.csv`) in the appropriate directory.
+    - Run the notebook (`ev2.ipynb`) step by step.
 
-This project is licensed under the MIT License.
+## Notable Code Snippets
+
+- Data Preprocessing:
+    ```python
+    dataset = dataset.drop(columns=['VIN (1-10)', 'DOL Vehicle ID', 'Vehicle Location'], errors='ignore')
+    dataset['Base MSRP'] = dataset['Base MSRP'].fillna(dataset['Base MSRP'].median())
+    # ... handle other missing values
+    ```
+
+- Model Pipeline:
+    ```python
+    preprocessor = ColumnTransformer([
+        ('num', StandardScaler(), numeric_cols),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols)
+    ])
+    rf_model = Pipeline([
+        ('preprocessor', preprocessor),
+        ('model', RandomForestRegressor(n_estimators=100, random_state=42))
+    ])
+    ```
+
+- Evaluation:
+    ```python
+    def evaluate(y_true, y_pred, model_name):
+        print(f"{model_name} MAE:", mean_absolute_error(y_true, y_pred))
+        print(f"{model_name} R²:", r2_score(y_true, y_pred))
+    ```
+
+## Insights
+
+- **Geographic and manufacturer information significantly improves EV range prediction.**
+- **Random Forests excel with tabular, mixed-type features and limited feature engineering.**
+- **Residual plots indicate minimal bias, supporting the model's reliability.**
+
+## Next Steps
+
+- Explore additional features (e.g., weather, charging infrastructure, detailed vehicle specs).
+- Hyperparameter tuning for the best performing models.
+- Deployment of the model as a web API or demo application.
